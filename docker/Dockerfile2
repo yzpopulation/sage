@@ -1,0 +1,29 @@
+FROM ubuntu:focal as run-time-dependencies
+LABEL maintainer="Erik M. Bray <erik.bray@lri.fr>, Julian Rüth <julian.rueth@fsfe.org>"
+ENV LC_ALL zh_CN.UTF-8
+ENV LANG zh_CN..UTF-8
+ENV SHELL /bin/bash
+ARG SAGE_ROOT=/home/sage/sage
+RUN ln -s "$SAGE_ROOT/sage" /usr/bin/sage
+RUN ln -s /usr/bin/sage /usr/bin/sagemath
+RUN apt-get -qq update \
+    && apt-get -qq install -y --no-install-recommends gfortran gcc g++ libstdc++-9-dev sudo openssl \
+    && apt-get -qq clean \
+    && rm -r /var/lib/apt/lists/*
+ARG HOME=/home/sage
+RUN adduser --quiet --shell /bin/bash --gecos "Sage user,101,," --disabled-password --home "$HOME" sage \
+    && echo "sage ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers.d/01-sage \
+    && chmod 0440 /etc/sudoers.d/01-sage
+USER sage
+ENV HOME $HOME
+WORKDIR $HOME
+FROM run-time-dependencies as sagemath
+ARG HOME=/home/sage
+ARG SAGE_ROOT=/home/sage/sage
+COPY --chown=sage:sage --from=make-release $SAGE_ROOT/ $SAGE_ROOT/
+RUN sudo $SAGE_ROOT/sage --nodotsage -c "install_scripts('/usr/bin')"
+COPY ./docker/entrypoint.sh /usr/local/bin/sage-entrypoint
+WORKDIR $HOME
+ENTRYPOINT ["/usr/local/bin/sage-entrypoint"]
+EXPOSE 8888
+CMD ["sage"]
