@@ -128,6 +128,7 @@ WORKDIR $SAGE_ROOT
 # of now) so we can find out later which files were added/changed/removed.
 RUN find . \( -type f -or -type l \) > $HOME/artifact-base.manifest
 RUN git fetch "$HOME/sage-context" HEAD 
+RUN tree
 RUN if [ -e docker/.commit ]; then \
           git reset `cat docker/.commit` \
           || ( echo "Could not find commit `cat docker/.commit` in your local Git history. Please merge in the latest built develop branch to fix this: git fetch trac && git merge `cat docker/.commit`." && exit 1 ) \
