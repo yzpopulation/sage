@@ -127,18 +127,18 @@ WORKDIR $SAGE_ROOT
 # We create a list of all files present in the artifact-base (with a timestamp
 # of now) so we can find out later which files were added/changed/removed.
 RUN find . \( -type f -or -type l \) > $HOME/artifact-base.manifest
-RUN git fetch "$HOME/sage-context" HEAD \
-    && if [ -e docker/.commit ]; then \
+RUN git fetch "$HOME/sage-context" HEAD 
+RUN if [ -e docker/.commit ]; then \
           git reset `cat docker/.commit` \
           || ( echo "Could not find commit `cat docker/.commit` in your local Git history. Please merge in the latest built develop branch to fix this: git fetch trac && git merge `cat docker/.commit`." && exit 1 ) \
        else \
           echo "You are building from $ARTIFACT_BASE which has no docker/.commit file. That's a bug unless you are building from source-clean or something similar." \
           && git reset FETCH_HEAD \
           && git checkout -f FETCH_HEAD; \
-       fi \
-    && git merge --ff-only FETCH_HEAD \
-    && git log -1 --format=%H > docker/.commit \
-    && rm -rf .git
+       fi
+RUN git merge --ff-only FETCH_HEAD 
+RUN git log -1 --format=%H > docker/.commit 
+RUN rm -rf .git
 # Copy over all the untracked/staged/unstaged changes from sage-context. This
 # is relevant for non-CI invocations of this Dockerfile.
 WORKDIR $HOME/sage-context
