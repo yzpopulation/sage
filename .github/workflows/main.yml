@@ -26,11 +26,16 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       -
-        name: Build and push
-        uses: docker/build-push-action@v2
-        with:
-          file: docker/Dockerfile
-          context: .
-          push: true
-          tags: yzpopulation/sage:latest
-          target: sagemath
+       name: run
+       run: |
+         docker build --build-arg MAKEFLAGS="-j4" --build-arg SAGE_NUM_THREADS="4" -f docker/Dockerfile --target=sagemath --tag sage .
+      
+#       -
+#         name: Build and push
+#         uses: docker/build-push-action@v2
+#         with:
+#           file: docker/Dockerfile
+#           context: .
+#           push: true
+#           tags: yzpopulation/sage:latest
+#           target: sagemath
